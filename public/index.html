@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receiver</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+  <h1>Receiver Page</h1>
+  <div id="messages"></div>
+
+  <script>
+    const messagesDiv = document.getElementById('messages');
+
+    // Connect to WebSocket server
+    const ws = new WebSocket('ws://localhost:8080/ws'); // Change localhost to server IP if needed
+
+    ws.onopen = () => messagesDiv.innerHTML += '<p style="color:green">✅ Connected to WebSocket</p>';
+    ws.onclose = () => messagesDiv.innerHTML += '<p style="color:red">❌ Connection closed</p>';
+    ws.onerror = (err) => messagesDiv.innerHTML += `<p style="color:red">⚠️ ${err}</p>`;
+
+    ws.onmessage = (event) => {
+      const p = document.createElement('p');
+      p.textContent = '📨 ' + event.data;
+      messagesDiv.appendChild(p);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    };
+  </script>
+</body>
+</html>
