@@ -14,24 +14,22 @@
   <div id="messages"></div>
 
   <script>
-    const messagesDiv = document.getElementById('messages');
+    const messagesDiv = document.getElementById('messages')
 
-    // Connect to WebSocket server
-   // Instead of ws://localhost:8080/ws
-  // Determine WebSocket protocol based on page
-const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-const ws = new WebSocket(`${protocol}://${window.location.hostname}:8080/ws?role=receiver`);
+    // Choose ws or wss automatically based on page protocol
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+    const ws = new WebSocket(`${protocol}://${window.location.hostname}${window.location.port ? ':'+window.location.port : ''}/ws?role=receiver`)
 
-    ws.onopen = () => messagesDiv.innerHTML += '<p style="color:green">✅ Connected to WebSocket</p>';
-    ws.onclose = () => messagesDiv.innerHTML += '<p style="color:red">❌ Connection closed</p>';
-    ws.onerror = (err) => messagesDiv.innerHTML += `<p style="color:red">⚠️ ${err}</p>`;
+    ws.onopen = () => messagesDiv.innerHTML += '<p style="color:green">✅ Connected to WebSocket</p>'
+    ws.onclose = () => messagesDiv.innerHTML += '<p style="color:red">❌ Connection closed</p>'
+    ws.onerror = (err) => messagesDiv.innerHTML += `<p style="color:red">⚠️ ${err.message || err}</p>`
 
     ws.onmessage = (event) => {
-      const p = document.createElement('p');
-      p.textContent = '📨 ' + event.data;
-      messagesDiv.appendChild(p);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    };
+      const p = document.createElement('p')
+      p.textContent = '📨 ' + event.data
+      messagesDiv.appendChild(p)
+      messagesDiv.scrollTop = messagesDiv.scrollHeight
+    }
   </script>
 </body>
 </html>

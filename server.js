@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
-const PORT = 8080
+const PORT = process.env.PORT || 8080
 
 app.use(express.static(path.join(__dirname, 'public')))
 
@@ -22,16 +22,17 @@ const server = app.listen(PORT, () => {
 const wss = new WebSocketServer({ server, path: '/ws' })
 
 wss.on('connection', (ws, req) => {
+  // Get role from URL: sender or receiver
   const params = new URLSearchParams(req.url.split('?')[1])
-  ws.role = params.get('role') // sender OR receiver
+  ws.role = params.get('role') || 'unknown'
 
   console.log(`✅ ${ws.role} connected:`, req.socket.remoteAddress)
 
   ws.on('message', (message) => {
     console.log(`📨 Message from ${ws.role}:`, message.toString())
 
+    // Only sender messages are forwarded to receivers
     if (ws.role === 'sender') {
-      // Send only to receivers
       wss.clients.forEach((client) => {
         if (client.readyState === ws.OPEN && client.role === 'receiver') {
           client.send(message.toString())
