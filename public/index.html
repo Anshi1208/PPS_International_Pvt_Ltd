@@ -17,7 +17,10 @@
     const messagesDiv = document.getElementById('messages');
 
     // Connect to WebSocket server
-    const ws = new WebSocket('ws://localhost:8080/ws?role=receiver'); // Change localhost to server IP if needed
+   // Instead of ws://localhost:8080/ws
+  // Determine WebSocket protocol based on page
+const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+const ws = new WebSocket(`${protocol}://${window.location.hostname}:8080/ws?role=receiver`);
 
     ws.onopen = () => messagesDiv.innerHTML += '<p style="color:green">✅ Connected to WebSocket</p>';
     ws.onclose = () => messagesDiv.innerHTML += '<p style="color:red">❌ Connection closed</p>';
