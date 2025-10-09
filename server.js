@@ -1,6 +1,5 @@
 import express from 'express'
 import { WebSocketServer } from 'ws'
-
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -10,40 +9,36 @@ const __dirname = path.dirname(__filename)
 const app = express()
 const PORT = 8080
 
-// MongoDB connection (local)
-
-
-
 app.use(express.static(path.join(__dirname, 'public')))
 
-// Redirect root to receiver page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'))
 })
 
-// Start HTTP server
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Receiver server running on port ${PORT}`)
+  console.log(`🚀 WebSocket Server running on port ${PORT}`)
 })
 
-// WebSocket server
 const wss = new WebSocketServer({ server, path: '/ws' })
 
 wss.on('connection', (ws, req) => {
-  console.log('📡 New sender connected:', req.socket.remoteAddress)
+  const params = new URLSearchParams(req.url.split('?')[1])
+  ws.role = params.get('role') // sender OR receiver
 
-  ws.on('message', async (message) => {
-    console.log('📨 Received (terminal):', message.toString())
+  console.log(`✅ ${ws.role} connected:`, req.socket.remoteAddress)
 
+  ws.on('message', (message) => {
+    console.log(`📨 Message from ${ws.role}:`, message.toString())
 
-
-    // Broadcast to all connected browser clients
-    wss.clients.forEach((client) => {
-      if (client.readyState === ws.OPEN) {
-        client.send(message.toString())
-      }
-    })
+    if (ws.role === 'sender') {
+      // Send only to receivers
+      wss.clients.forEach((client) => {
+        if (client.readyState === ws.OPEN && client.role === 'receiver') {
+          client.send(message.toString())
+        }
+      })
+    }
   })
 
-  ws.on('close', () => console.log('❌ Sender disconnected'))
+  ws.on('close', () => console.log(`❌ ${ws.role} disconnected`))
 })
